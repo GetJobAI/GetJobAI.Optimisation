@@ -1,0 +1,27 @@
+using System.Text.Json.Serialization;
+
+namespace GetJobAI.Optimisation.OptimisationService.Models;
+
+public class WorkExperienceSuggestion
+{
+    [JsonPropertyName("entry_id")]
+    public Guid EntryId { get; set; }
+
+    [JsonPropertyName("include")]
+    public bool Include { get; set; } = true;
+
+    [JsonPropertyName("reason")]
+    public string? Reason { get; set; } 
+
+    [JsonPropertyName("bullets")]
+    public List<BulletSuggestion> Bullets { get; set; } = [];
+
+    [JsonPropertyName("accepted")]
+    public bool? Accepted { get; set; }
+
+    [JsonPropertyName("rejection_hint")]
+    public string? RejectionHint { get; set; }
+
+    [JsonPropertyName("rewrite_count")]
+    public int RewriteCount { get; set; } = 0;
+}
