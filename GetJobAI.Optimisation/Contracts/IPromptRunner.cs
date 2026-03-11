@@ -1,3 +1,4 @@
+using GetJobAI.Optimisation.OptimisationService;
 using GetJobAI.Optimisation.OptimisationService.Contexts;
 using GetJobAI.Optimisation.OptimisationService.Models;
 using GetJobAI.Optimisation.OptimisationService.Results;
@@ -6,43 +7,43 @@ namespace GetJobAI.Optimisation.Contracts;
 
 public interface IPromptRunner
 {
-    Task<WorkExperienceSuggestion> RewriteExperienceAsync(
+    Task<PromptResult<WorkExperienceSuggestion>> RewriteExperienceAsync(
         WorkExperienceContext entry,
         OptimisationContext ctx,
         CancellationToken ct,
         string? hint = null);
 
-    Task<SummarySuggestion> RewriteSummaryAsync(
+    Task<PromptResult<SummarySuggestion>> RewriteSummaryAsync(
         OptimisationContext ctx,
         CancellationToken ct,
         string? hint = null);
 
-    Task<SkillsSuggestion> OptimiseSkillsAsync(
+    Task<PromptResult<SkillsSuggestion>> OptimiseSkillsAsync(
         OptimisationContext ctx,
         CancellationToken ct,
         string? hint = null);
 
-    Task<SectionRelevancyRawSuggestions> AssessSectionRelevancyAsync(
+    Task<PromptResult<SectionRelevancyRawSuggestions>> AssessSectionRelevancyAsync(
         OptimisationContext ctx,
         CancellationToken ct);
 
-    Task<AtsExplanationResult> ExplainAtsScoreAsync(
+    Task<PromptResult<AtsExplanationResult>> ExplainAtsScoreAsync(
         OptimisationContext ctx,
         CancellationToken ct);
 
-    Task<ActivitySuggestion> RewriteActivityAsync(
+    Task<PromptResult<ActivitySuggestion>> RewriteActivityAsync(
         ActivityContext activity,
         OptimisationContext ctx,
         CancellationToken ct,
         string? hint = null);
     
-    Task<XyzDetectResult> DetectXyzOpportunityAsync(
+    Task<PromptResult<XyzDetectResult>> DetectXyzOpportunityAsync(
         string bulletText,
         string jobTitle,
         string companyName,
         CancellationToken ct);
     
-    Task<XyzRewriteResult> RewriteWithXyzAsync(
+    Task<PromptResult<XyzRewriteResult>> RewriteWithXyzAsync(
         string originalBullet,
         string missingComponent,
         string coachQuestion,
@@ -50,7 +51,7 @@ public interface IPromptRunner
         string jobTitle,
         CancellationToken ct);
     
-    Task<CoverLetterResult> GenerateCoverLetterAsync(
+    Task<PromptResult<CoverLetterResult>> GenerateCoverLetterAsync(
         CoverLetterContext ctx,
         CancellationToken ct);
 }

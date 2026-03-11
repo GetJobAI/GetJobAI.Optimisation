@@ -1,9 +1,30 @@
 using GetJobAI.Optimisation.Contracts;
 using GetJobAI.Optimisation.OptimisationService;
+using GetJobAI.Optimisation.OptimisationService.MetricsCollector;
 using GetJobAI.Optimisation.Prompts;
 using Google.GenAI;
+using Serilog;
+using Serilog.Events;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Host.UseSerilog();
+
+Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Information()
+    .Enrich.FromLogContext()
+    .WriteTo.Console()
+    .WriteTo.File(
+        "logs/system-.txt", 
+        rollingInterval: RollingInterval.Day, 
+        restrictedToMinimumLevel: LogEventLevel.Warning)
+    .WriteTo.Logger(lc => lc
+        .Filter.ByIncludingOnly(evt => 
+            evt.Properties.ContainsKey("SourceContext") && 
+            evt.Properties["SourceContext"].ToString().Contains("Prompt"))
+        .WriteTo.File(
+            "logs/prompt-audit-.txt", 
+            rollingInterval: RollingInterval.Day))
+    .CreateLogger();
 
 builder.Services.Configure<GeminiOptions>(
     builder.Configuration.GetSection(GeminiOptions.SectionName));
@@ -18,7 +39,15 @@ if (geminiOptions?.ApiKey is not null)
 }
 
 builder.Services.AddSingleton<IPromptRegistry, PromptRegistry>();
+
+builder.Services.AddSingleton<PromptMetricsCollector>();
+
 builder.Services.AddScoped<IPromptRunner, PromptRunner>();
+builder.Services.AddScoped<IPromptRunner>(sp =>
+    new LoggingPromptRunner(
+        sp.GetRequiredService<PromptRunner>(),
+        sp.GetRequiredService<PromptMetricsCollector>(),
+        sp.GetRequiredService<ILogger<LoggingPromptRunner>>()));
 
 builder.Services.AddOpenApi();
 

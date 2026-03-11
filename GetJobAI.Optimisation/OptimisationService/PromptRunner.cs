@@ -10,111 +10,106 @@ using Microsoft.Extensions.Options;
 namespace GetJobAI.Optimisation.OptimisationService;
 
 public class PromptRunner(
-    Client client, 
-    IOptions<GeminiOptions> options, 
+    Client client,
+    IOptions<GeminiOptions> options,
     IPromptRegistry promptRegistry) : IPromptRunner
 {
     private readonly GeminiOptions _options = options.Value;
+
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
         PropertyNameCaseInsensitive = true
     };
 
-    public async Task<WorkExperienceSuggestion> RewriteExperienceAsync(
+    public async Task<PromptResult<WorkExperienceSuggestion>> RewriteExperienceAsync(
         WorkExperienceContext entry,
         OptimisationContext ctx,
         CancellationToken ct,
         string? hint = null)
     {
         var userMessage = $"""
-               I am optimising a resume for the following role:
-               <target_role>
-                 Job Title: {ctx.JobTitle}
-                 Company:   {ctx.CompanyName}
-               </target_role>
+            I am optimising a resume for the following role:
+            <target_role>
+              Job Title: {ctx.JobTitle}
+              Company:   {ctx.CompanyName}
+            </target_role>
 
-               Here is one work experience entry to rewrite:
-               <experience_entry>
-                 Entry Id:  {entry.EntryId}
-                 Job Title: {entry.JobTitle}
-                 Company:   {entry.CompanyName}
-                 Period:    {entry.StartDate} – {entry.EndDate}
-                 Bullets:
-                 {string.Join("\n  ", entry.Bullets.Select((b, i) => $"{i + 1}. {b}"))}
-               </experience_entry>
+            Here is one work experience entry to rewrite:
+            <experience_entry>
+              Entry Id:  {entry.EntryId}
+              Job Title: {entry.JobTitle}
+              Company:   {entry.CompanyName}
+              Period:    {entry.StartDate} – {entry.EndDate}
+              Bullets:
+              {string.Join("\n  ", entry.Bullets.Select((b, i) => $"{i + 1}. {b}"))}
+            </experience_entry>
 
-               Missing ATS keywords to naturally incorporate (ordered by importance):
-               <missing_keywords>
-               {JsonSerializer.Serialize(ctx.JobRequiredSkills
-                   .Select(s => new { keyword = s.SkillName, importance = s.ImportanceScore })
-                   .OrderByDescending(s => s.importance))}
-               </missing_keywords>
+            Missing ATS keywords to naturally incorporate (ordered by importance):
+            <missing_keywords>
+            {JsonSerializer.Serialize(ctx.JobRequiredSkills
+                .OrderByDescending(s => s.ImportanceScore)
+                .Select(s => new { keyword = s.SkillName, importance = s.ImportanceScore }))}
+            </missing_keywords>
 
-               {(hint is not null ? $"The user rejected the previous rewrite. Their feedback:\n<rejection_hint>{hint}</rejection_hint>" : "")}
+            {HintBlock(hint)}
 
-               Rewrite the bullets. Return only valid JSON matching the schema in your instructions.
-               """;
+            Rewrite the bullets. Return only valid JSON matching the schema in your instructions.
+            """;
 
-        float? tempOverride = hint is not null
-            ? promptRegistry.Get("PR-01").Temperature + 0.2f
-            : null;
+        var result = await CallModelAsync<WorkExperienceSuggestion>(
+            "PR-01", ctx.OptimisationId, userMessage, null, ct);
 
-        var parsed = await CallModelAsync<WorkExperienceSuggestion>("PR-01", userMessage, tempOverride, ct);
+        result.Content.EntryId      = entry.EntryId;
+        result.Content.RewriteCount = hint is not null ? 1 : 0;
 
-        parsed.EntryId = entry.EntryId;
-        parsed.RewriteCount = hint is not null ? 1 : 0;
-
-        return parsed;
+        return result;
     }
 
-    public async Task<SummarySuggestion> RewriteSummaryAsync(
+    public async Task<PromptResult<SummarySuggestion>> RewriteSummaryAsync(
         OptimisationContext ctx,
         CancellationToken ct,
         string? hint = null)
     {
         var userMessage = $"""
-               Rewrite the professional summary for a candidate applying for the following role:
-               <target_role>
-                 Job Title: {ctx.JobTitle}
-                 Company:   {ctx.CompanyName}
-               </target_role>
+            Rewrite the professional summary for a candidate applying for the following role:
+            <target_role>
+              Job Title: {ctx.JobTitle}
+              Company:   {ctx.CompanyName}
+            </target_role>
 
-               Candidate's current summary:
-               <existing_summary>
-               {ctx.ExistingSummary ?? "(no existing summary — write from scratch based on the context below)"}
-               </existing_summary>
+            Candidate's current summary:
+            <existing_summary>
+            {ctx.ExistingSummary ?? "(no existing summary — write from scratch based on the context below)"}
+            </existing_summary>
 
-               Candidate's skills for context:
-               <candidate_skills>
-               {JsonSerializer.Serialize(ctx.Skills.Select(s => new { skill = s.SkillNameRaw, proficiency = s.Proficiency }))}
-               </candidate_skills>
+            Candidate's skills for context:
+            <candidate_skills>
+            {JsonSerializer.Serialize(ctx.Skills.Select(s => new { skill = s.SkillNameRaw, proficiency = s.Proficiency }))}
+            </candidate_skills>
 
-               Missing ATS keywords to incorporate naturally:
-               <missing_keywords>
-               {JsonSerializer.Serialize(ctx.JobRequiredSkills
-                   .OrderByDescending(s => s.ImportanceScore)
-                   .Take(10)
-                   .Select(s => s.SkillName))}
-               </missing_keywords>
+            Missing ATS keywords to incorporate naturally:
+            <missing_keywords>
+            {JsonSerializer.Serialize(ctx.JobRequiredSkills
+                .OrderByDescending(s => s.ImportanceScore)
+                .Take(10)
+                .Select(s => s.SkillName))}
+            </missing_keywords>
 
-               {(hint is not null ? $"The user rejected the previous rewrite. Their feedback:\n<rejection_hint>{hint}</rejection_hint>" : "")}
+            {HintBlock(hint)}
 
-               Return only valid JSON matching the schema in your instructions.
-               """;
+            Return only valid JSON matching the schema in your instructions.
+            """;
 
-        float? tempOverride = hint is not null
-            ? promptRegistry.Get("PR-02").Temperature + 0.2f
-            : null;
+        var result = await CallModelAsync<SummarySuggestion>(
+            "PR-02", ctx.OptimisationId, userMessage, null, ct);
 
-        var parsed = await CallModelAsync<SummarySuggestion>("PR-02", userMessage, tempOverride, ct);
+        result.Content.Original     = ctx.ExistingSummary ?? string.Empty;
+        result.Content.RewriteCount = hint is not null ? 1 : 0;
 
-        parsed.Original = ctx.ExistingSummary ?? string.Empty;
-        parsed.RewriteCount = hint is not null ? 1 : 0;
-
-        return parsed;
+        return result;
     }
-
-    public async Task<SkillsSuggestion> OptimiseSkillsAsync(
+    
+    public async Task<PromptResult<SkillsSuggestion>> OptimiseSkillsAsync(
         OptimisationContext ctx,
         CancellationToken ct,
         string? hint = null)
@@ -132,10 +127,10 @@ public class PromptRunner(
             <candidate_skills>
             {JsonSerializer.Serialize(ctx.Skills.Select(s => new
             {
-                skill       = s.SkillNameRaw,
-                normalised  = s.SkillName,
+                skill      = s.SkillNameRaw,
+                normalised = s.SkillName,
                 proficiency = s.Proficiency,
-                category    = s.Category
+                category   = s.Category
             }))}
             </candidate_skills>
 
@@ -154,29 +149,29 @@ public class PromptRunner(
 
             ATS skill alignment score: {ctx.ScoreSkill}/100
 
-            {(hint is not null ? $"The user rejected the previous suggestion. Their feedback:\n<rejection_hint>{hint}</rejection_hint>" : "")}
+            {HintBlock(hint)}
 
             Return only valid JSON matching the schema in your instructions.
             """;
 
-        float? tempOverride = hint is not null
-            ? promptRegistry.Get("PR-03").Temperature + 0.2f
-            : null;
+        var result = await CallModelAsync<SkillsSuggestion>(
+            "PR-03", ctx.OptimisationId, userMessage, null, ct);
 
-        var parsed = await CallModelAsync<SkillsSuggestion>("PR-03", userMessage, tempOverride, ct);
+        result.Content.RewriteCount = hint is not null ? 1 : 0;
 
-        parsed.RewriteCount = hint is not null ? 1 : 0;
-
-        return parsed;
+        return result;
     }
 
-    public async Task<SectionRelevancyRawSuggestions> AssessSectionRelevancyAsync(
+    public async Task<PromptResult<SectionRelevancyRawSuggestions>> AssessSectionRelevancyAsync(
         OptimisationContext ctx,
         CancellationToken ct)
     {
-        if (ctx.Publications.Count == 0 && ctx.Activities.Count == 0 && ctx.AdditionalSections.Count == 0)
+        if (ctx.Publications.Count == 0
+            && ctx.Activities.Count == 0
+            && ctx.AdditionalSections.Count == 0)
         {
-            return new SectionRelevancyRawSuggestions();
+            return PromptResult<SectionRelevancyRawSuggestions>.Empty(
+                new SectionRelevancyRawSuggestions());
         }
 
         var userMessage = $"""
@@ -193,11 +188,11 @@ public class PromptRunner(
             <publications>
             {JsonSerializer.Serialize(ctx.Publications.Select(p => new
             {
-                entry_id        = p.EntryId,
-                title           = p.Title,
-                publisher       = p.Publisher,
+                entry_id         = p.EntryId,
+                title            = p.Title,
+                publisher        = p.Publisher,
                 publication_date = p.PublicationDate,
-                description     = p.Description
+                description      = p.Description
             }))}
             </publications>
 
@@ -227,25 +222,21 @@ public class PromptRunner(
             Return only valid JSON matching the schema in your instructions.
             """;
 
-        var parsed = await CallModelAsync<SectionRelevancyRawSuggestions>("PR-04", userMessage, null, ct);
+        var result = await CallModelAsync<SectionRelevancyRawSuggestions>(
+            "PR-04", ctx.OptimisationId, userMessage, null, ct);
 
-        MapEntryIds(parsed.Publications, ctx.Publications.Select(p => p.EntryId).ToList());
-        MapEntryIds(parsed.AdditionalSections, ctx.AdditionalSections.Select(a => a.EntryId).ToList());
+        MapEntryIds(result.Content.Publications, ctx.Publications.Select(p => p.EntryId).ToList());
+        MapEntryIds(result.Content.AdditionalSections, ctx.AdditionalSections.Select(a => a.EntryId).ToList());
 
-        for (var i = 0; i < parsed.Activities.Count && i < ctx.Activities.Count; i++)
+        for (var i = 0; i < result.Content.Activities.Count && i < ctx.Activities.Count; i++)
         {
-            parsed.Activities[i].EntryId = ctx.Activities[i].EntryId;
+            result.Content.Activities[i].EntryId = ctx.Activities[i].EntryId;
         }
 
-        return new SectionRelevancyRawSuggestions
-        {
-            Publications = parsed.Publications,
-            Activities = parsed.Activities,
-            AdditionalSections = parsed.AdditionalSections,
-        };
+        return result;
     }
-    
-    public async Task<AtsExplanationResult> ExplainAtsScoreAsync(
+
+    public async Task<PromptResult<AtsExplanationResult>> ExplainAtsScoreAsync(
         OptimisationContext ctx,
         CancellationToken ct)
     {
@@ -256,11 +247,11 @@ public class PromptRunner(
 
             Scores:
             <scores>
-              Overall ATS score:     {ctx.OverallScore} / 100
-              Keyword match:         {ctx.ScoreKeyword} / 100
-              Skill alignment:       {ctx.ScoreSkill} / 100
-              Resume parseability:   {ctx.ScoreFormat} / 100
-              Experience relevance:  {ctx.ScoreExperience} / 100
+              Overall ATS score:    {ctx.OverallScore} / 100
+              Keyword match:        {ctx.ScoreKeyword} / 100
+              Skill alignment:      {ctx.ScoreSkill} / 100
+              Resume parseability:  {ctx.ScoreFormat} / 100
+              Experience relevance: {ctx.ScoreExperience} / 100
             </scores>
 
             Top missing required keywords:
@@ -274,10 +265,11 @@ public class PromptRunner(
             Return only valid JSON matching the schema in your instructions.
             """;
 
-        return await CallModelAsync<AtsExplanationResult>("PR-05", userMessage, null, ct);
+        return await CallModelAsync<AtsExplanationResult>(
+            "PR-05", ctx.OptimisationId, userMessage, null, ct);
     }
-    
-    public async Task<ActivitySuggestion> RewriteActivityAsync(
+
+    public async Task<PromptResult<ActivitySuggestion>> RewriteActivityAsync(
         ActivityContext activity,
         OptimisationContext ctx,
         CancellationToken ct,
@@ -307,49 +299,46 @@ public class PromptRunner(
                 .Select(s => s.SkillName))}
             </missing_keywords>
 
-            {(hint is not null ? $"The user rejected the previous rewrite. Their feedback:\n<rejection_hint>{hint}</rejection_hint>" : "")}
+            {HintBlock(hint)}
 
             Assess relevance and rewrite highlights if included.
             Return only valid JSON matching the schema in your instructions.
             """;
 
-        float? tempOverride = hint is not null
-            ? promptRegistry.Get("PR-06").Temperature + 0.2f
-            : null;
+        var result = await CallModelAsync<ActivitySuggestion>(
+            "PR-06", ctx.OptimisationId, userMessage, null, ct);
 
-        var parsed = await CallModelAsync<ActivitySuggestion>("PR-06", userMessage, tempOverride, ct);
+        result.Content.EntryId = activity.EntryId;
+        result.Content.RewriteCount = hint is not null ? 1 : 0;
 
-        parsed.EntryId      = activity.EntryId;
-        parsed.RewriteCount = hint is not null ? 1 : 0;
-
-        return parsed;
+        return result;
     }
 
-    public async Task<XyzDetectResult> DetectXyzOpportunityAsync(
+    public async Task<PromptResult<XyzDetectResult>> DetectXyzOpportunityAsync(
         string bulletText,
         string jobTitle,
         string companyName,
         CancellationToken ct)
     {
         var userMessage = $"""
-                           Assess whether the following resume bullet would benefit from XYZ reformatting.
+            Assess whether the following resume bullet would benefit from XYZ reformatting.
 
-                           Context — this bullet is from a candidate applying for:
-                           <target_role>
-                             Job Title: {jobTitle}
-                             Company:   {companyName}
-                           </target_role>
+            Context — this bullet is from a candidate applying for:
+            <target_role>
+              Job Title: {jobTitle}
+              Company:   {companyName}
+            </target_role>
 
-                           Bullet to assess:
-                           <bullet>{bulletText}</bullet>
+            Bullet to assess:
+            <bullet>{bulletText}</bullet>
 
-                           Return only valid JSON matching the schema in your instructions.
-                           """;
+            Return only valid JSON matching the schema in your instructions.
+            """;
 
-        return await CallModelAsync<XyzDetectResult>("PR-07", userMessage, null, ct);
+        return await CallModelAsync<XyzDetectResult>("PR-07", null, userMessage, null, ct);
     }
 
-    public async Task<XyzRewriteResult> RewriteWithXyzAsync(
+    public async Task<PromptResult<XyzRewriteResult>> RewriteWithXyzAsync(
         string originalBullet,
         string missingComponent,
         string coachQuestion,
@@ -358,90 +347,97 @@ public class PromptRunner(
         CancellationToken ct)
     {
         var emptyAnswers = new[] { "", "n/a", "na", "no", "none", "i don't know", "idk" };
-        
+
         if (emptyAnswers.Contains(userAnswer.Trim().ToLowerInvariant()))
         {
-            return new XyzRewriteResult
+            return PromptResult<XyzRewriteResult>.Empty(new XyzRewriteResult
             {
                 RewrittenBullet = originalBullet,
                 UsedOriginal    = true
-            };
+            });
         }
 
         var userMessage = $"""
-                           Rewrite the following resume bullet into XYZ format using the candidate's answer.
+            Rewrite the following resume bullet into XYZ format using the candidate's answer.
 
-                           Target role: {jobTitle}
+            Target role: {jobTitle}
 
-                           Original bullet:
-                           <original_bullet>{originalBullet}</original_bullet>
+            Original bullet:
+            <original_bullet>{originalBullet}</original_bullet>
 
-                           The missing XYZ component was: {missingComponent}
+            The missing XYZ component was: {missingComponent}
 
-                           The coaching question asked:
-                           <question>{coachQuestion}</question>
+            The coaching question asked:
+            <question>{coachQuestion}</question>
 
-                           The candidate answered:
-                           <candidate_answer>{userAnswer}</candidate_answer>
+            The candidate answered:
+            <candidate_answer>{userAnswer}</candidate_answer>
 
-                           Return only valid JSON matching the schema in your instructions.
-                           """;
+            Return only valid JSON matching the schema in your instructions.
+            """;
 
-        return await CallModelAsync<XyzRewriteResult>("PR-08", userMessage, null, ct);
+        return await CallModelAsync<XyzRewriteResult>("PR-08", null, userMessage, null, ct);
     }
     
-    public async Task<CoverLetterResult> GenerateCoverLetterAsync(
+    public async Task<PromptResult<CoverLetterResult>> GenerateCoverLetterAsync(
         CoverLetterContext ctx,
         CancellationToken ct)
     {
         var userMessage = $"""
-                           Write a professional cover letter for the following candidate and role.
+            Write a professional cover letter for the following candidate and role.
 
-                           Candidate: {ctx.CandidateName ?? "the candidate"}
-                           Target role:
-                           <target_role>
-                             Job Title: {ctx.JobTitle}
-                             Company:   {ctx.CompanyName}
-                           </target_role>
+            Candidate: {ctx.CandidateName ?? "the candidate"}
+            Target role:
+            <target_role>
+              Job Title: {ctx.JobTitle}
+              Company:   {ctx.CompanyName}
+            </target_role>
 
-                           About the company:
-                           <company_description>{ctx.CompanyDescription}</company_description>
+            About the company:
+            <company_description>{ctx.CompanyDescription}</company_description>
 
-                           Candidate's accepted professional summary:
-                           <summary>{ctx.AcceptedSummary}</summary>
+            Candidate's accepted professional summary:
+            <summary>{ctx.AcceptedSummary}</summary>
 
-                           Top achievements to draw on (pick the most relevant 2–3):
-                           <achievements>
-                           {JsonSerializer.Serialize(ctx.TopAchievements)}
-                           </achievements>
+            Top achievements to draw on (pick the most relevant 2–3):
+            <achievements>
+            {JsonSerializer.Serialize(ctx.TopAchievements)}
+            </achievements>
 
-                           Accepted skills:
-                           <skills>
-                           {JsonSerializer.Serialize(ctx.AcceptedSkills)}
-                           </skills>
+            Accepted skills:
+            <skills>
+            {JsonSerializer.Serialize(ctx.AcceptedSkills)}
+            </skills>
 
-                           Keywords still missing from the resume to weave in naturally:
-                           <missing_keywords>
-                           {JsonSerializer.Serialize(ctx.MissingKeywords)}
-                           </missing_keywords>
+            Keywords still missing from the resume to weave in naturally:
+            <missing_keywords>
+            {JsonSerializer.Serialize(ctx.MissingKeywords)}
+            </missing_keywords>
 
-                           Language/locale: {ctx.Language}
+            Language/locale: {ctx.Language}
 
-                           {(ctx.CustomNote is not null ? $"Additional instruction from the candidate:\n<custom_note>{ctx.CustomNote}</custom_note>" : "")}
+            {(ctx.CustomNote is not null ? $"Additional instruction from the candidate:\n<custom_note>{ctx.CustomNote}</custom_note>" : "")}
 
-                           Return only valid JSON matching the schema in your instructions.
-                           """;
-        
-        // todo: on each regeneration keep T between 0.65 and 0.85
-        var result = await CallModelAsync<CoverLetterResult>("PR-09", userMessage, null, ct);
+            Return only valid JSON matching the schema in your instructions.
+            """;
 
-        result.RewriteCount = ctx.RewriteCount;
+        // Each regeneration nudges temperature up: 0.65 → 0.75 → 0.85, capped at 0.85
+        var baseTemp    = promptRegistry.Get("PR-09").Temperature;
+        var tempOverride = ctx.RewriteCount > 0
+            ? Math.Min(baseTemp + 0.1f * ctx.RewriteCount, 0.85f)
+            : (float?)null;
+
+        var result = await CallModelAsync<CoverLetterResult>(
+            "PR-09", null, userMessage, tempOverride, ct);
+
+        result.Content.RewriteCount = ctx.RewriteCount;
 
         return result;
     }
-
-    private async Task<T> CallModelAsync<T>(
+    
+    private async Task<PromptResult<T>> CallModelAsync<T>(
         string promptId,
+        Guid? optimisationId,
         string userMessage,
         float? temperatureOverride,
         CancellationToken ct)
@@ -454,8 +450,8 @@ public class PromptRunner(
             {
                 Parts = [new Part { Text = prompt.SystemMessage }]
             },
-            Temperature      = temperatureOverride ?? prompt.Temperature,
-            MaxOutputTokens  = prompt.MaxTokens,
+            Temperature = temperatureOverride ?? prompt.Temperature,
+            MaxOutputTokens = prompt.MaxTokens,
             ResponseMimeType = "application/json"
         };
 
@@ -484,9 +480,10 @@ public class PromptRunner(
 
         try
         {
-            var result = JsonSerializer.Deserialize<T>(json, JsonOptions);
-            
-            return result ?? throw new InvalidOperationException($"{promptId}: response deserialized to null.");
+            var content = JsonSerializer.Deserialize<T>(json, JsonOptions)
+                ?? throw new InvalidOperationException($"{promptId}: response deserialized to null.");
+
+            return MapToPromptResult(response, content, prompt.Version, optimisationId);
         }
         catch (JsonException ex)
         {
@@ -494,10 +491,39 @@ public class PromptRunner(
                 $"{promptId}: failed to deserialize response. Raw: {json[..Math.Min(300, json.Length)]}", ex);
         }
     }
-    
-    private static void MapEntryIds(
-        List<SectionRelevancySuggestion> suggestions,
-        List<Guid> entryIds)
+
+    private PromptResult<T> MapToPromptResult<T>(
+        GenerateContentResponse response,
+        T content,
+        string version,
+        Guid? optimisationId = null)
+    {
+        var usage     = response.UsageMetadata;
+        var candidate = response.Candidates.FirstOrDefault();
+
+        return new PromptResult<T>
+        {
+            Content = content,
+            PromptVersion = version,
+            Model = response.ModelVersion ?? _options.PrimaryModel,
+            Success = candidate?.FinishReason == FinishReason.Stop,
+            InputTokens = usage?.PromptTokenCount,
+            OutputTokens = usage?.CandidatesTokenCount,
+            CachedTokens = usage?.CachedContentTokenCount,
+            TotalTokens = usage?.TotalTokenCount,
+            FinishReason = candidate?.FinishReason.ToString(),
+            OptimisationId = optimisationId
+        };
+    }
+
+    private static string HintBlock(string? hint)
+    {
+        return hint is not null
+            ? $"The user rejected the previous rewrite. Their feedback:\n<rejection_hint>{hint}</rejection_hint>"
+            : string.Empty;
+    }
+
+    private static void MapEntryIds(List<SectionRelevancySuggestion> suggestions, List<Guid> entryIds)
     {
         for (var i = 0; i < suggestions.Count && i < entryIds.Count; i++)
         {
