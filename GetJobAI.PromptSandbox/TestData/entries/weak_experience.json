@@ -1,0 +1,13 @@
+{
+    "entryId": "CD78B990-9DEA-476F-8D15-1405EC049FBA",
+    "jobTitle": "Software Developer",
+    "companyName": "Acme Corp",
+    "startDate": "2021-03",
+    "endDate": "2024-06",
+    "bullets": [
+        "Worked on backend services for the company's main product",
+        "Helped with code reviews and mentoring junior developers",
+        "Fixed bugs in the payment module and improved reliability",
+        "Wrote unit tests for existing features"
+    ]
+}

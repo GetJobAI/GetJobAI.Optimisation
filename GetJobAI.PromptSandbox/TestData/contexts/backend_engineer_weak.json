@@ -1,0 +1,63 @@
+{
+    "jobTitle": "Senior Backend Engineer",
+    "companyName": "TechCorp",
+    "candidateName": "Alex Johnson",
+    "existingSummary": "Experienced developer with 5 years building web applications in various technologies.",
+    "detectedLanguage": "en",
+    "overallScore": 48,
+    "scoreKeyword": 40,
+    "scoreSkill": 45,
+    "scoreFormat": 72,
+    "scoreExperience": 55,
+    "jobRequiredSkills": [
+        { "skillName": "kubernetes",    "importanceScore": 0.95, "category": "Technical", "isRequired": true },
+        { "skillName": "postgresql",    "importanceScore": 0.88, "category": "Technical", "isRequired": true },
+        { "skillName": "microservices", "importanceScore": 0.82, "category": "Technical", "isRequired": true },
+        { "skillName": "ci/cd",         "importanceScore": 0.75, "category": "Technical", "isRequired": true },
+        { "skillName": "golang",        "importanceScore": 0.70, "category": "Technical", "isRequired": true },
+        { "skillName": "rest api",      "importanceScore": 0.65, "category": "Technical", "isRequired": true }
+    ],
+    "jobPreferredSkills": [
+        { "skillName": "terraform",  "importanceScore": 0.50, "category": "Technical", "isRequired": false },
+        { "skillName": "grafana",    "importanceScore": 0.40, "category": "Technical", "isRequired": false },
+        { "skillName": "redis",      "importanceScore": 0.35, "category": "Technical", "isRequired": false }
+    ],
+    "skills": [
+        { "skillName": "csharp",      "skillNameRaw": "C#",           "proficiency": "Expert",       "category": "Technical" },
+        { "skillName": "postgresql",  "skillNameRaw": "PostgreSQL",   "proficiency": "Advanced",     "category": "Technical" },
+        { "skillName": "docker",      "skillNameRaw": "Docker",       "proficiency": "Intermediate", "category": "Technical" },
+        { "skillName": "rest api",    "skillNameRaw": "REST APIs",    "proficiency": "Advanced",     "category": "Technical" },
+        { "skillName": "git",         "skillNameRaw": "Git",          "proficiency": "Advanced",     "category": "Technical" },
+        { "skillName": "javascript",  "skillNameRaw": "JavaScript",   "proficiency": "Intermediate", "category": "Technical" }
+    ],
+    "workExperiences": [
+        {
+            "entryId": "CD78B990-9DEA-476F-8D15-1405EC049FBA",
+            "jobTitle": "Software Developer",
+            "companyName": "Acme Corp",
+            "startDate": "2021-03",
+            "endDate": "2024-06",
+            "bullets": [
+                "Worked on backend services for the company's main product",
+                "Helped with code reviews and mentoring junior developers",
+                "Fixed bugs in the payment module and improved reliability",
+                "Wrote unit tests for existing features"
+            ]
+        },
+        {
+            "entryId": "34D017E9-4A1A-4F0A-8317-74BAF78668BE",
+            "jobTitle": "Junior Developer",
+            "companyName": "StartupXYZ",
+            "startDate": "2019-06",
+            "endDate": "2021-02",
+            "bullets": [
+                "Built REST APIs using C# and ASP.NET Core",
+                "Worked with PostgreSQL databases",
+                "Participated in daily standups and sprint planning"
+            ]
+        }
+    ],
+    "publications": [],
+    "activities": [],
+    "additionalSections": []
+}

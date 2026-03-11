@@ -1,0 +1,75 @@
+{
+    "jobTitle": "Backend Engineer",
+    "companyName": "FinTech Ltd",
+    "candidateName": "Maria Kovacs",
+    "existingSummary": "Results-driven professional with experience across software development and sales.",
+    "detectedLanguage": "en",
+    "overallScore": 31,
+    "scoreKeyword": 25,
+    "scoreSkill": 28,
+    "scoreFormat": 65,
+    "scoreExperience": 38,
+    "jobRequiredSkills": [
+        { "skillName": "python",        "importanceScore": 0.92, "category": "Technical", "isRequired": true },
+        { "skillName": "postgresql",    "importanceScore": 0.85, "category": "Technical", "isRequired": true },
+        { "skillName": "rest api",      "importanceScore": 0.78, "category": "Technical", "isRequired": true },
+        { "skillName": "microservices", "importanceScore": 0.70, "category": "Technical", "isRequired": true }
+    ],
+    "jobPreferredSkills": [
+        { "skillName": "fastapi", "importanceScore": 0.55, "category": "Technical", "isRequired": false },
+        { "skillName": "docker",  "importanceScore": 0.45, "category": "Technical", "isRequired": false }
+    ],
+    "skills": [
+        { "skillName": "python",     "skillNameRaw": "Python",      "proficiency": "Intermediate", "category": "Technical" },
+        { "skillName": "javascript", "skillNameRaw": "JavaScript",  "proficiency": "Basic",        "category": "Technical" },
+        { "skillName": "sql",        "skillNameRaw": "SQL",         "proficiency": "Intermediate", "category": "Technical" },
+        { "skillName": "excel",      "skillNameRaw": "Excel",       "proficiency": "Advanced",     "category": "Technical" }
+    ],
+    "workExperiences": [
+        {
+            "jobTitle": "Junior Python Developer",
+            "companyName": "DataSoft",
+            "startDate": "2023-01",
+            "endDate": "2024-08",
+            "bullets": [
+                "Developed internal data processing scripts in Python",
+                "Connected to PostgreSQL databases to run queries and generate reports",
+                "Collaborated with senior engineers on REST API endpoints"
+            ]
+        },
+        {
+            "jobTitle": "Sales Representative",
+            "companyName": "Consumer Goods Co",
+            "startDate": "2019-03",
+            "endDate": "2022-12",
+            "bullets": [
+                "Managed a portfolio of 50 retail accounts across the region",
+                "Exceeded quarterly sales targets by 20% for three consecutive years",
+                "Presented product demonstrations to prospective clients"
+            ]
+        },
+        {
+            "jobTitle": "Barista",
+            "companyName": "City Coffee",
+            "startDate": "2017-06",
+            "endDate": "2019-02",
+            "bullets": [
+                "Prepared specialty coffee beverages for up to 150 customers daily",
+                "Trained two new staff members on equipment and procedures"
+            ]
+        }
+    ],
+    "publications": [],
+    "activities": [
+        {
+          "activityName": "Open Source Contributor",
+          "organization": "GitHub",
+          "role": "Contributor",
+          "highlights": [
+              "Submitted 3 pull requests to a popular Python data validation library",
+              "Reported and triaged bugs in open source REST API tooling"
+          ]
+        }
+    ],
+    "additionalSections": []
+}

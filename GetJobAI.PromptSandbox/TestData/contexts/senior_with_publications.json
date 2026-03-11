@@ -1,0 +1,95 @@
+{
+    "jobTitle": "Principal Software Engineer",
+    "companyName": "CloudBase Inc",
+    "candidateName": "Dr. Stefan Müller",
+    "existingSummary": "Principal engineer with 12 years of experience in distributed systems, cloud infrastructure, and technical leadership.",
+    "detectedLanguage": "en",
+    "overallScore": 71,
+    "scoreKeyword": 68,
+    "scoreSkill": 75,
+    "scoreFormat": 80,
+    "scoreExperience": 82,
+    "jobRequiredSkills": [
+        { "skillName": "distributed systems", "importanceScore": 0.95, "category": "Technical", "isRequired": true },
+        { "skillName": "kubernetes",          "importanceScore": 0.90, "category": "Technical", "isRequired": true },
+        { "skillName": "golang",              "importanceScore": 0.85, "category": "Technical", "isRequired": true },
+        { "skillName": "system design",       "importanceScore": 0.80, "category": "Technical", "isRequired": true },
+        { "skillName": "technical leadership","importanceScore": 0.75, "category": "Domain",    "isRequired": true }
+    ],
+    "jobPreferredSkills": [
+        { "skillName": "rust",       "importanceScore": 0.50, "category": "Technical", "isRequired": false },
+        { "skillName": "kafka",      "importanceScore": 0.45, "category": "Technical", "isRequired": false }
+    ],
+    "skills": [
+        { "skillName": "golang",              "skillNameRaw": "Go",                  "proficiency": "Expert",   "category": "Technical" },
+        { "skillName": "kubernetes",          "skillNameRaw": "Kubernetes",          "proficiency": "Expert",   "category": "Technical" },
+        { "skillName": "distributed systems", "skillNameRaw": "Distributed Systems", "proficiency": "Expert",   "category": "Technical" },
+        { "skillName": "kafka",               "skillNameRaw": "Apache Kafka",        "proficiency": "Advanced", "category": "Technical" },
+        { "skillName": "technical leadership","skillNameRaw": "Technical Leadership","proficiency": "Advanced", "category": "Domain"    }
+    ],
+    "workExperiences": [
+        {
+          "jobTitle": "Principal Engineer",
+          "companyName": "CloudBase Inc",
+          "startDate": "2020-01",
+          "endDate": "Present",
+          "bullets": [
+              "Architected a distributed event streaming platform processing 5B events per day",
+              "Led a team of 8 engineers across 3 time zones to deliver platform migration on schedule",
+              "Reduced infrastructure costs by 35% through Kubernetes cluster optimisation",
+              "Defined and enforced engineering standards adopted across 12 product teams"
+          ]
+        }
+    ],
+    "publications": [
+        {
+            "entryId": "a1b2c3d4-0000-0000-0000-000000000001",
+            "title": "Consistent Hashing at Scale: Lessons from Production",
+            "publisher": "ACM Queue",
+            "publicationDate": "2023-05",
+            "description": "Analysis of consistent hashing strategies in large-scale distributed caching systems."
+        },
+        {
+            "entryId": "a1b2c3d4-0000-0000-0000-000000000002",
+            "title": "Improving Customer Retention Through Loyalty Programmes",
+            "publisher": "Harvard Business Review",
+            "publicationDate": "2018-11",
+            "description": "Study on consumer behaviour and retail loyalty scheme effectiveness."
+        }
+    ],
+    "activities": [
+        {
+          "entryId": "a1b2c3d4-0000-0000-0000-000000000003",
+          "activityName": "NDC Oslo — Conference Speaker",
+          "organization": "NDC Conferences",
+          "role": "Speaker",
+          "highlights": [
+              "Delivered talk on distributed systems patterns to 400 attendees",
+              "Session rated 4.8/5 by attendees"
+          ]
+        },
+        {
+          "entryId": "a1b2c3d4-0000-0000-0000-000000000004",
+          "activityName": "Amateur Watercolour Painting",
+          "organization": null,
+          "role": null,
+          "highlights": [
+              "Exhibited at local community art show 2022"
+          ]
+        }
+    ],
+    "additionalSections": [
+        {
+          "entryId": "a1b2c3d4-0000-0000-0000-000000000005",
+          "sectionType": "PetProject",
+          "title": "Side Projects",
+          "contentJson": "[{\"name\":\"distcache\",\"description\":\"Open source distributed cache library in Go with 1.2k GitHub stars\",\"url\":\"https://github.com/stefanm/distcache\",\"tech_stack\":[\"Go\",\"Redis\",\"Kubernetes\"]}]"
+        },
+        {
+          "entryId": "a1b2c3d4-0000-0000-0000-000000000006",
+          "sectionType": "Award",
+          "title": "Awards",
+          "contentJson": "[{\"title\":\"Best Regional Sales Manager\",\"issuer\":\"Consumer Goods Association\",\"date\":\"2021-03\",\"description\":\"Awarded for highest regional sales growth\"}]"
+        }
+    ]
+}

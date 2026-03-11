@@ -1,9 +1,16 @@
 namespace GetJobAI.Optimisation.OptimisationService.Contexts;
 
-public record WorkExperienceContext(
-    Guid EntryId,
-    string JobTitle,
-    string CompanyName,
-    string StartDate,
-    string EndDate,
-    List<string> Bullets);
+public class WorkExperienceContext
+{
+    public Guid EntryId { get; set; }
+    
+    public string JobTitle { get; set; } = string.Empty;
+    
+    public string CompanyName { get; set; } = string.Empty;
+    
+    public string StartDate { get; set; } = string.Empty;
+    
+    public string EndDate { get; set; } = string.Empty;
+    
+    public List<string> Bullets { get; set; } = [];
+}

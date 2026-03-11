@@ -103,7 +103,7 @@ public class PromptRunner(
         var result = await CallModelAsync<SummarySuggestion>(
             "PR-02", ctx.OptimisationId, userMessage, null, ct);
 
-        result.Content.Original     = ctx.ExistingSummary ?? string.Empty;
+        result.Content.Original = ctx.ExistingSummary ?? string.Empty;
         result.Content.RewriteCount = hint is not null ? 1 : 0;
 
         return result;
@@ -421,8 +421,7 @@ public class PromptRunner(
             Return only valid JSON matching the schema in your instructions.
             """;
 
-        // Each regeneration nudges temperature up: 0.65 → 0.75 → 0.85, capped at 0.85
-        var baseTemp    = promptRegistry.Get("PR-09").Temperature;
+        var baseTemp = promptRegistry.Get("PR-09").Temperature;
         var tempOverride = ctx.RewriteCount > 0
             ? Math.Min(baseTemp + 0.1f * ctx.RewriteCount, 0.85f)
             : (float?)null;
