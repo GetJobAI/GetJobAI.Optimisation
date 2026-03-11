@@ -35,4 +35,22 @@ public interface IPromptRunner
         OptimisationContext ctx,
         CancellationToken ct,
         string? hint = null);
+    
+    Task<XyzDetectResult> DetectXyzOpportunityAsync(
+        string bulletText,
+        string jobTitle,
+        string companyName,
+        CancellationToken ct);
+    
+    Task<XyzRewriteResult> RewriteWithXyzAsync(
+        string originalBullet,
+        string missingComponent,
+        string coachQuestion,
+        string userAnswer,
+        string jobTitle,
+        CancellationToken ct);
+    
+    Task<CoverLetterResult> GenerateCoverLetterAsync(
+        CoverLetterContext ctx,
+        CancellationToken ct);
 }
