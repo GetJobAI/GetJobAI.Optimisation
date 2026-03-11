@@ -16,12 +16,12 @@ public sealed class PromptRegistry : IPromptRegistry
     public PromptTemplate Get(string promptId, string version = "1.0")
     {
         var key = $"{promptId}:{version}";
-        
+
         if (!_templates.TryGetValue(key, out var template))
         {
-            throw new KeyNotFoundException($"Prompt template '{key}' not found in registry.");
+          throw new KeyNotFoundException($"Prompt template '{key}' not found in registry.");
         }
-        
+
         return template;
     }
     
@@ -147,9 +147,10 @@ public sealed class PromptRegistry : IPromptRegistry
 
                        Respond ONLY with valid JSON. No preamble, no markdown fences:
                        {
-                         "summary": "string",
+                         "original": "string (the input text provided)",
+                         "rewritten": "string (the new summary)",
                          "keywords_incorporated": ["string"],
-                         "tense": "first_person"
+                         "rewrite_count": 1
                        }
                        """);
     

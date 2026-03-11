@@ -13,6 +13,9 @@ public class CoverLetterResult
     [JsonPropertyName("salutation_used")]
     public string SalutationUsed { get; set; } = string.Empty;
 
+    [JsonPropertyName("key_points_made")]
+    public List<string> KeyPointsMade { get; set; } = [];
+
     [JsonPropertyName("accepted")]
     public bool? Accepted { get; set; }
 

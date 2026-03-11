@@ -32,7 +32,7 @@ public sealed class LoggingPromptRunner(
             meta:     $"job=\"{ctx.JobTitle}\" has_existing={ctx.ExistingSummary is not null} is_retry={hint is not null}",
             call:     () => inner.RewriteSummaryAsync(ctx, ct, hint));
     
-    public Task<PromptResult<SkillsSuggestion>> OptimiseSkillsAsync(
+    public Task<PromptResult<SkillsGapResult>> OptimiseSkillsAsync(
         OptimisationContext ctx,
         CancellationToken ct,
         string? hint = null)
@@ -71,11 +71,12 @@ public sealed class LoggingPromptRunner(
         string bulletText,
         string jobTitle,
         string companyName,
-        CancellationToken ct)
+        CancellationToken ct,
+        string? language = null)
         => ExecuteAsync(
             promptId: "PR-07",
-            meta:     $"job=\"{jobTitle}\" bullet_chars={bulletText.Length}",
-            call:     () => inner.DetectXyzOpportunityAsync(bulletText, jobTitle, companyName, ct));
+            meta:     $"job=\"{jobTitle}\" bullet_chars={bulletText.Length} lang={language ?? "en"}",
+            call:     () => inner.DetectXyzOpportunityAsync(bulletText, jobTitle, companyName, ct, language));
 
     public Task<PromptResult<XyzRewriteResult>> RewriteWithXyzAsync(
         string originalBullet,
@@ -83,11 +84,12 @@ public sealed class LoggingPromptRunner(
         string coachQuestion,
         string userAnswer,
         string jobTitle,
-        CancellationToken ct)
+        CancellationToken ct,
+        string? language = null)
         => ExecuteAsync(
             promptId: "PR-08",
-            meta:     $"job=\"{jobTitle}\" missing={missingComponent} answer_chars={userAnswer.Length}",
-            call:     () => inner.RewriteWithXyzAsync(originalBullet, missingComponent, coachQuestion, userAnswer, jobTitle, ct));
+            meta:     $"job=\"{jobTitle}\" missing={missingComponent} answer_chars={userAnswer.Length} lang={language ?? "en"}",
+            call:     () => inner.RewriteWithXyzAsync(originalBullet, missingComponent, coachQuestion, userAnswer, jobTitle, ct, language));
     
     public Task<PromptResult<CoverLetterResult>> GenerateCoverLetterAsync(
         CoverLetterContext ctx,

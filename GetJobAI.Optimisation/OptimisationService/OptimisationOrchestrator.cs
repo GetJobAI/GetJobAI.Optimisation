@@ -31,7 +31,7 @@ public class OptimisationOrchestrator(IPromptRunner promptRunner) : IOptimisatio
         {
             Summary = summaryTask.Result.Content,
             WorkExperience = workExpTasks.Select(t => t.Result.Content).ToList(),
-            Skills = skillsTask.Result.Content,
+            SkillsGap = skillsTask.Result.Content,
             AtsExplanation = atsExplanationTask.Result.Content,
             Publications = sectionRelevancy.Publications,
             Activities = sectionRelevancy.Activities,

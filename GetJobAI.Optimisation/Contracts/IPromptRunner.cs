@@ -18,7 +18,7 @@ public interface IPromptRunner
         CancellationToken ct,
         string? hint = null);
 
-    Task<PromptResult<SkillsSuggestion>> OptimiseSkillsAsync(
+    Task<PromptResult<SkillsGapResult>> OptimiseSkillsAsync(
         OptimisationContext ctx,
         CancellationToken ct,
         string? hint = null);
@@ -41,15 +41,17 @@ public interface IPromptRunner
         string bulletText,
         string jobTitle,
         string companyName,
-        CancellationToken ct);
-    
+        CancellationToken ct,
+        string? language = null);
+
     Task<PromptResult<XyzRewriteResult>> RewriteWithXyzAsync(
         string originalBullet,
         string missingComponent,
         string coachQuestion,
         string userAnswer,
         string jobTitle,
-        CancellationToken ct);
+        CancellationToken ct,
+        string? language = null);
     
     Task<PromptResult<CoverLetterResult>> GenerateCoverLetterAsync(
         CoverLetterContext ctx,

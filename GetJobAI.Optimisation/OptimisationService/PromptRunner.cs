@@ -52,6 +52,7 @@ public class PromptRunner(
             </missing_keywords>
 
             {HintBlock(hint)}
+            {LanguageBlock(ctx.DetectedLanguage)}
 
             Rewrite the bullets. Return only valid JSON matching the schema in your instructions.
             """;
@@ -96,6 +97,7 @@ public class PromptRunner(
             </missing_keywords>
 
             {HintBlock(hint)}
+            {LanguageBlock(ctx.DetectedLanguage)}
 
             Return only valid JSON matching the schema in your instructions.
             """;
@@ -109,7 +111,7 @@ public class PromptRunner(
         return result;
     }
     
-    public async Task<PromptResult<SkillsSuggestion>> OptimiseSkillsAsync(
+    public async Task<PromptResult<SkillsGapResult>> OptimiseSkillsAsync(
         OptimisationContext ctx,
         CancellationToken ct,
         string? hint = null)
@@ -150,16 +152,13 @@ public class PromptRunner(
             ATS skill alignment score: {ctx.ScoreSkill}/100
 
             {HintBlock(hint)}
+            {LanguageBlock(ctx.DetectedLanguage)}
 
             Return only valid JSON matching the schema in your instructions.
             """;
 
-        var result = await CallModelAsync<SkillsSuggestion>(
+        return await CallModelAsync<SkillsGapResult>(
             "PR-03", ctx.OptimisationId, userMessage, null, ct);
-
-        result.Content.RewriteCount = hint is not null ? 1 : 0;
-
-        return result;
     }
 
     public async Task<PromptResult<SectionRelevancyRawSuggestions>> AssessSectionRelevancyAsync(
@@ -219,6 +218,8 @@ public class PromptRunner(
             }))}
             </additional_sections>
 
+            {LanguageBlock(ctx.DetectedLanguage)}
+
             Return only valid JSON matching the schema in your instructions.
             """;
 
@@ -262,6 +263,8 @@ public class PromptRunner(
                 .Select(s => s.SkillName))}
             </missing_keywords>
 
+            {LanguageBlock(ctx.DetectedLanguage)}
+
             Return only valid JSON matching the schema in your instructions.
             """;
 
@@ -300,6 +303,7 @@ public class PromptRunner(
             </missing_keywords>
 
             {HintBlock(hint)}
+            {LanguageBlock(ctx.DetectedLanguage)}
 
             Assess relevance and rewrite highlights if included.
             Return only valid JSON matching the schema in your instructions.
@@ -318,7 +322,8 @@ public class PromptRunner(
         string bulletText,
         string jobTitle,
         string companyName,
-        CancellationToken ct)
+        CancellationToken ct,
+        string? language = null)
     {
         var userMessage = $"""
             Assess whether the following resume bullet would benefit from XYZ reformatting.
@@ -332,6 +337,8 @@ public class PromptRunner(
             Bullet to assess:
             <bullet>{bulletText}</bullet>
 
+            {LanguageBlock(language)}
+
             Return only valid JSON matching the schema in your instructions.
             """;
 
@@ -344,7 +351,8 @@ public class PromptRunner(
         string coachQuestion,
         string userAnswer,
         string jobTitle,
-        CancellationToken ct)
+        CancellationToken ct,
+        string? language = null)
     {
         var emptyAnswers = new[] { "", "n/a", "na", "no", "none", "i don't know", "idk" };
 
@@ -372,6 +380,8 @@ public class PromptRunner(
 
             The candidate answered:
             <candidate_answer>{userAnswer}</candidate_answer>
+
+            {LanguageBlock(language)}
 
             Return only valid JSON matching the schema in your instructions.
             """;
@@ -445,15 +455,11 @@ public class PromptRunner(
 
         var config = new GenerateContentConfig
         {
-            SystemInstruction = new Content
-            {
-                Parts = [new Part { Text = prompt.SystemMessage }]
-            },
             Temperature = temperatureOverride ?? prompt.Temperature,
             MaxOutputTokens = prompt.MaxTokens,
             ResponseMimeType = "application/json"
         };
-
+        
         var response = await client.Models.GenerateContentAsync(
             model: _options.PrimaryModel,
             contents: new Content
@@ -497,7 +503,7 @@ public class PromptRunner(
         string version,
         Guid? optimisationId = null)
     {
-        var usage     = response.UsageMetadata;
+        var usage = response.UsageMetadata;
         var candidate = response.Candidates.FirstOrDefault();
 
         return new PromptResult<T>
@@ -520,6 +526,17 @@ public class PromptRunner(
         return hint is not null
             ? $"The user rejected the previous rewrite. Their feedback:\n<rejection_hint>{hint}</rejection_hint>"
             : string.Empty;
+    }
+
+    private static string LanguageBlock(string? language)
+    {
+        if (string.IsNullOrWhiteSpace(language) || language.StartsWith("en", StringComparison.OrdinalIgnoreCase))
+        {
+            return string.Empty;
+        }
+
+        return $"Language: Write all generated natural-language text in {language}. " +
+               $"JSON property names must remain in English exactly as specified in the schema.";
     }
 
     private static void MapEntryIds(List<SectionRelevancySuggestion> suggestions, List<Guid> entryIds)
