@@ -1,8 +1,10 @@
 using GetJobAI.Optimisation.Contracts;
+using GetJobAI.Optimisation.Messaging.Consumers;
 using GetJobAI.Optimisation.OptimisationService;
 using GetJobAI.Optimisation.OptimisationService.MetricsCollector;
 using GetJobAI.Optimisation.Prompts;
 using Google.GenAI;
+using MassTransit;
 using Serilog;
 using Serilog.Events;
 
@@ -42,12 +44,30 @@ builder.Services.AddSingleton<IPromptRegistry, PromptRegistry>();
 
 builder.Services.AddSingleton<PromptMetricsCollector>();
 
-builder.Services.AddScoped<IPromptRunner, PromptRunner>();
+builder.Services.AddScoped<PromptRunner>();
 builder.Services.AddScoped<IPromptRunner>(sp =>
     new LoggingPromptRunner(
         sp.GetRequiredService<PromptRunner>(),
         sp.GetRequiredService<PromptMetricsCollector>(),
         sp.GetRequiredService<ILogger<LoggingPromptRunner>>()));
+
+builder.Services.AddScoped<IOptimisationOrchestrator, OptimisationOrchestrator>();
+
+builder.Services.AddMassTransit(x =>
+{
+    x.AddConsumer<ResumeScoredConsumer>();
+
+    x.UsingRabbitMq((context, cfg) =>
+    {
+        cfg.Host(builder.Configuration["RabbitMq:Host"] ?? "rabbitmq://localhost", h =>
+        {
+            h.Username(builder.Configuration["RabbitMq:Username"] ?? "guest");
+            h.Password(builder.Configuration["RabbitMq:Password"] ?? "guest");
+        });
+
+        cfg.ConfigureEndpoints(context);
+    });
+});
 
 builder.Services.AddOpenApi();
 
