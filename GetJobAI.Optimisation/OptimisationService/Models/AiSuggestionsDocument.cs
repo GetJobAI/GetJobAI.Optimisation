@@ -11,9 +11,6 @@ public class AiSuggestionsDocument
     [JsonPropertyName("work_experience")]
     public List<WorkExperienceSuggestion> WorkExperience { get; set; } = [];
 
-    [JsonPropertyName("skills")]
-    public SkillsSuggestion? Skills { get; set; }
-
     [JsonPropertyName("publications")]
     public List<SectionRelevancySuggestion> Publications { get; set; } = [];
 
@@ -27,5 +24,5 @@ public class AiSuggestionsDocument
     public AtsExplanationResult? AtsExplanation { get; set; }
 
     [JsonPropertyName("skills_gap")]
-    public SkillsGapResult? SkillsGap { get; set; }
+    public SkillsGapResult SkillsGap { get; set; }
 }

@@ -23,5 +23,5 @@ public class ActivitySuggestion
     public string? RejectionHint { get; set; }
 
     [JsonPropertyName("rewrite_count")]
-    public int RewriteCount { get; set; } = 0;
+    public int? RewriteCount { get; set; } = 0;
 }

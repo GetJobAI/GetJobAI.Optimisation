@@ -54,7 +54,7 @@ public sealed class LoggingPromptRunner(
         CancellationToken ct)
         => ExecuteAsync(
             promptId: "PR-05",
-            meta:     $"job=\"{ctx.JobTitle}\" score={ctx.OverallScore} keyword={ctx.ScoreKeyword} skill={ctx.ScoreSkill}",
+            meta:     $"job=\"{ctx.JobTitle}\" score={ctx.OverallScore} keyword={ctx.ScoreKeywordEarned}/{ctx.ScoreKeywordMax} skill={ctx.ScoreSkillEarned}/{ctx.ScoreSkillMax}",
             call:     () => inner.ExplainAtsScoreAsync(ctx, ct));
     
     public Task<PromptResult<ActivitySuggestion>> RewriteActivityAsync(
@@ -114,10 +114,10 @@ public sealed class LoggingPromptRunner(
             sw.Stop();
 
             logger.LogInformation(
-                "[{PromptId}] ✓ completed | elapsed={ElapsedMs}ms | tokens=({Input}→{Output}) model={Model} | {Meta}",
+                "[{PromptId}] ✓ completed | elapsed={ElapsedMs}ms | tokens=({Input}→{Output}) model={Model} finish={FinishReason} | {Meta}",
                 promptId, sw.ElapsedMilliseconds,
                 result.InputTokens, result.OutputTokens,
-                result.Model,
+                result.Model, result.FinishReason,
                 meta);
 
             metrics.Record(new PromptCallMetrics

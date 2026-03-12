@@ -100,7 +100,10 @@ public sealed class PromptRegistry : IPromptRegistry
                         - The entry_id in your response MUST be the exact string provided in the input data. 
                           Do not change it, do not shorten it, and do not use "guid" or "0000...".
 
-                        Respond ONLY with valid JSON matching this schema exactly. No preamble, no markdown fences:
+                        Respond ONLY with valid JSON. No preamble, no markdown fences.
+                        Your response MUST be a single JSON object — NOT an array.
+                        It MUST start with { and end with }.
+                        Schema:
                         {
                           "entry_id": "guid",
                           "include": true,
@@ -145,12 +148,13 @@ public sealed class PromptRegistry : IPromptRegistry
                        - Do NOT fabricate specific metrics or companies.
                        - Do NOT start with "I am" or "My name is".
 
-                       Respond ONLY with valid JSON. No preamble, no markdown fences:
+                       Respond ONLY with valid JSON. No preamble, no markdown fences.
+                       Your response MUST be a single JSON object — NOT an array. It MUST start with { and end with }.
+                       Schema:
                        {
                          "original": "string (the input text provided)",
                          "rewritten": "string (the new summary)",
-                         "keywords_incorporated": ["string"],
-                         "rewrite_count": 1
+                         "keywords_incorporated": ["string"]
                        }
                        """);
     
@@ -179,7 +183,9 @@ public sealed class PromptRegistry : IPromptRegistry
                        - Be honest. Do not downgrade missing_hard gaps to partial to improve the score.
                        - Do not suggest adding skills the candidate has no basis for claiming.
 
-                       Respond ONLY with valid JSON. No preamble, no markdown fences:
+                       Respond ONLY with valid JSON. No preamble, no markdown fences.
+                       Your response MUST be a single JSON object — NOT an array. It MUST start with { and end with }.
+                       Schema:
                        {
                          "skills_analysis": [
                            {
@@ -204,10 +210,11 @@ public sealed class PromptRegistry : IPromptRegistry
                       You are an expert resume strategist. Your task is to assess whether non-core
                       resume sections are worth including for a specific target role.
 
-                      You will receive three section types: publications, activities, and additional
-                      sections (pet projects, awards, speaking engagements, etc.).
+                      You will receive entries grouped into three named lists: publications, activities,
+                      and additional_sections. Your response MUST be a single JSON object with exactly
+                      those three keys — never a flat array.
 
-                      For EACH entry across ALL three section types you must decide:
+                      For EACH entry in EACH list decide:
 
                       Set "include" to true if ANY of the following apply:
                       - The entry demonstrates a skill, domain, or achievement directly relevant
@@ -231,13 +238,17 @@ public sealed class PromptRegistry : IPromptRegistry
                       When "include" is true set "reason" to null.
 
                       CRITICAL RULES:
-                      - Assess every entry you receive — never skip one.
+                      - Your response MUST be a JSON object with exactly three keys: "publications",
+                        "activities", "additional_sections". Never return a flat array.
+                      - If a list has no entries, return it as an empty array [].
+                      - Assess every entry — never skip one.
                       - Be decisive. Do not set include to true just to be safe.
                       - Keep reasons concise — one sentence maximum.
                       - Do not fabricate or assume content not present in the input.
 
-                      Respond ONLY with valid JSON matching this schema exactly.
-                      No preamble, no markdown fences:
+                      Respond ONLY with valid JSON. No preamble, no markdown fences.
+                      The response MUST start with { and end with }.
+                      Schema:
                       {
                         "publications": [
                           {
@@ -292,7 +303,9 @@ public sealed class PromptRegistry : IPromptRegistry
                      - Be specific: "Add Kubernetes to your skills section" not "add more keywords".
                      - Avoid technical jargon — say "how well your resume reads to automated systems".
 
-                     Respond ONLY with valid JSON. No preamble, no markdown fences:
+                     Respond ONLY with valid JSON. No preamble, no markdown fences.
+                      Your response MUST be a single JSON object — NOT an array. It MUST start with { and end with }.
+                      Schema:
                      {
                        "headline_message": "string",
                        "score_label": "string",
@@ -349,8 +362,9 @@ public sealed class PromptRegistry : IPromptRegistry
                       - Keep "reason" to one sentence maximum.
                       - You MUST return "highlights_rewritten" as an empty array when include is false.
 
-                      Respond ONLY with valid JSON matching this schema exactly.
-                      No preamble, no markdown fences:
+                      Respond ONLY with valid JSON. No preamble, no markdown fences.
+                      Your response MUST be a single JSON object — NOT an array. It MUST start with { and end with }.
+                      Schema:
                       {
                         "include": true,
                         "reason": null,
@@ -384,7 +398,9 @@ public sealed class PromptRegistry : IPromptRegistry
                       - If the bullet already has strong XYZ structure, set needs_xyz to false.
                       - If bullet is fewer than 5 words, set needs_xyz to false.
 
-                      Respond ONLY with valid JSON. No preamble, no markdown fences:
+                      Respond ONLY with valid JSON. No preamble, no markdown fences.
+                      Your response MUST be a single JSON object — NOT an array. It MUST start with { and end with }.
+                      Schema:
                       {
                         "needs_xyz": true,
                         "missing_component": "Y",
@@ -421,7 +437,9 @@ public sealed class PromptRegistry : IPromptRegistry
                       If user answer is "I don't know", "N/A", or blank: return original bullet unchanged
                       and set "used_original": true.
 
-                      Respond ONLY with valid JSON. No preamble, no markdown fences:
+                      Respond ONLY with valid JSON. No preamble, no markdown fences.
+                      Your response MUST be a single JSON object — NOT an array. It MUST start with { and end with }.
+                      Schema:
                       {
                         "rewritten_bullet": "string",
                         "xyz_breakdown": { "x": "string", "y": "string", "z": "string" },
@@ -460,7 +478,9 @@ public sealed class PromptRegistry : IPromptRegistry
                       - Honour custom_note if provided — integrate naturally.
                       - Honour {{LOCALE_ADDENDUM}} if present.
 
-                      Respond ONLY with valid JSON. No preamble, no markdown fences:
+                      Respond ONLY with valid JSON. No preamble, no markdown fences.
+                      Your response MUST be a single JSON object — NOT an array. It MUST start with { and end with }.
+                      Schema:
                       {
                         "cover_letter": "string (paragraph breaks as \\n\\n)",
                         "word_count": 0,

@@ -54,7 +54,7 @@ public class PromptRunner(
             {HintBlock(hint)}
             {LanguageBlock(ctx.DetectedLanguage)}
 
-            Rewrite the bullets. Return only valid JSON matching the schema in your instructions.
+            Rewrite the bullets. Return a single JSON object (not an array) matching the schema in your instructions.
             """;
 
         var result = await CallModelAsync<WorkExperienceSuggestion>(
@@ -149,7 +149,7 @@ public class PromptRunner(
                 .Select(s => new { skill = s.SkillName, category = s.Category }))}
             </preferred_skills>
 
-            ATS skill alignment score: {ctx.ScoreSkill}/100
+            ATS skill alignment score: {ctx.ScoreSkillEarned}/{ctx.ScoreSkillMax}
 
             {HintBlock(hint)}
             {LanguageBlock(ctx.DetectedLanguage)}
@@ -220,7 +220,8 @@ public class PromptRunner(
 
             {LanguageBlock(ctx.DetectedLanguage)}
 
-            Return only valid JSON matching the schema in your instructions.
+            Return a single JSON object with exactly three keys — "publications", "activities",
+            "additional_sections" — each containing an array. Do NOT return a flat array.
             """;
 
         var result = await CallModelAsync<SectionRelevancyRawSuggestions>(
@@ -249,10 +250,10 @@ public class PromptRunner(
             Scores:
             <scores>
               Overall ATS score:    {ctx.OverallScore} / 100
-              Keyword match:        {ctx.ScoreKeyword} / 100
-              Skill alignment:      {ctx.ScoreSkill} / 100
-              Resume parseability:  {ctx.ScoreFormat} / 100
-              Experience relevance: {ctx.ScoreExperience} / 100
+              Keyword match:        {ctx.ScoreKeywordEarned}/{ctx.ScoreKeywordMax}
+              Skill alignment:      {ctx.ScoreSkillEarned}/{ctx.ScoreSkillMax}
+              Resume parseability:  {ctx.ScoreFormatEarned}/{ctx.ScoreFormatMax}
+              Experience relevance: {ctx.ScoreExperienceEarned}/{ctx.ScoreExperienceMax}
             </scores>
 
             Top missing required keywords:
@@ -464,7 +465,7 @@ public class PromptRunner(
             model: _options.PrimaryModel,
             contents: new Content
             {
-                Role  = "user",
+                Role = "user",
                 Parts = [new Part { Text = userMessage }]
             },
             config: config,
