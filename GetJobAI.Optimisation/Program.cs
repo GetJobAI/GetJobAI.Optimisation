@@ -69,8 +69,13 @@ builder.Services.AddMassTransit(x =>
             h.Username(builder.Configuration["RabbitMq:Username"] ?? "guest");
             h.Password(builder.Configuration["RabbitMq:Password"] ?? "guest");
         });
+        
+        cfg.UseRawJsonSerializer();
 
-        cfg.ConfigureEndpoints(context);
+        cfg.ReceiveEndpoint("service.ai-optimiser.resume-scored", e =>
+        {
+            e.ConfigureConsumer<ResumeScoredConsumer>(context);
+        });
     });
 });
 

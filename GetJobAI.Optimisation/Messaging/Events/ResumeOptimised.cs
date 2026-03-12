@@ -8,9 +8,7 @@ public record ResumeOptimised
     
     public Guid UserId { get; init; }
 
-    public string AiSuggestionsJson { get; init; } = "{}";
-    
-    public short OriginalAtsScore { get; init; }
+    public int OriginalAtsScore { get; init; }
 
     public string Status { get; init; } = "AwaitingReview";
     
