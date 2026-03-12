@@ -1,10 +1,12 @@
 using GetJobAI.Optimisation.Contracts;
+using GetJobAI.Optimisation.Data;
 using GetJobAI.Optimisation.Messaging.Consumers;
 using GetJobAI.Optimisation.OptimisationService;
 using GetJobAI.Optimisation.OptimisationService.MetricsCollector;
 using GetJobAI.Optimisation.Prompts;
 using Google.GenAI;
 using MassTransit;
+using Microsoft.EntityFrameworkCore;
 using Serilog;
 using Serilog.Events;
 
@@ -52,6 +54,9 @@ builder.Services.AddScoped<IPromptRunner>(sp =>
         sp.GetRequiredService<ILogger<LoggingPromptRunner>>()));
 
 builder.Services.AddScoped<IOptimisationOrchestrator, OptimisationOrchestrator>();
+
+builder.Services.AddDbContext<OptimisationDbContext>(options =>
+    options.UseNpgsql(builder.Configuration.GetConnectionString("Default")));
 
 builder.Services.AddMassTransit(x =>
 {
