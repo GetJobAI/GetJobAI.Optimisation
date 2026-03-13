@@ -7,6 +7,7 @@ using Google.GenAI;
 using Google.GenAI.Types;
 using Microsoft.Extensions.Options;
 
+
 namespace GetJobAI.Optimisation.OptimisationService;
 
 public class PromptRunner(
@@ -58,7 +59,7 @@ public class PromptRunner(
             """;
 
         var result = await CallModelAsync<WorkExperienceSuggestion>(
-            "PR-01", ctx.OptimisationId, userMessage, null, ct);
+            "PR-01", ctx.OptimisationId, userMessage, null, ct, ResponseSchemas.WorkExperienceResponseSchema);
 
         result.Content.EntryId      = entry.EntryId;
         result.Content.RewriteCount = hint is not null ? 1 : 0;
@@ -103,7 +104,7 @@ public class PromptRunner(
             """;
 
         var result = await CallModelAsync<SummarySuggestion>(
-            "PR-02", ctx.OptimisationId, userMessage, null, ct);
+            "PR-02", ctx.OptimisationId, userMessage, null, ct, ResponseSchemas.SummarySuggestionSchema);
 
         result.Content.Original = ctx.ExistingSummary ?? string.Empty;
         result.Content.RewriteCount = hint is not null ? 1 : 0;
@@ -158,7 +159,7 @@ public class PromptRunner(
             """;
 
         return await CallModelAsync<SkillsGapResult>(
-            "PR-03", ctx.OptimisationId, userMessage, null, ct);
+            "PR-03", ctx.OptimisationId, userMessage, null, ct, ResponseSchemas.SkillsGapSchema);
     }
 
     public async Task<PromptResult<SectionRelevancyRawSuggestions>> AssessSectionRelevancyAsync(
@@ -225,7 +226,7 @@ public class PromptRunner(
             """;
 
         var result = await CallModelAsync<SectionRelevancyRawSuggestions>(
-            "PR-04", ctx.OptimisationId, userMessage, null, ct);
+            "PR-04", ctx.OptimisationId, userMessage, null, ct, ResponseSchemas.SectionRelevancySchema);
 
         MapEntryIds(result.Content.Publications, ctx.Publications.Select(p => p.EntryId).ToList());
         MapEntryIds(result.Content.AdditionalSections, ctx.AdditionalSections.Select(a => a.EntryId).ToList());
@@ -270,7 +271,7 @@ public class PromptRunner(
             """;
 
         return await CallModelAsync<AtsExplanationResult>(
-            "PR-05", ctx.OptimisationId, userMessage, null, ct);
+            "PR-05", ctx.OptimisationId, userMessage, null, ct, ResponseSchemas.AtsExplanationSchema);
     }
 
     public async Task<PromptResult<ActivitySuggestion>> RewriteActivityAsync(
@@ -311,7 +312,7 @@ public class PromptRunner(
             """;
 
         var result = await CallModelAsync<ActivitySuggestion>(
-            "PR-06", ctx.OptimisationId, userMessage, null, ct);
+            "PR-06", ctx.OptimisationId, userMessage, null, ct, ResponseSchemas.ActivitySuggestionSchema);
 
         result.Content.EntryId = activity.EntryId;
         result.Content.RewriteCount = hint is not null ? 1 : 0;
@@ -343,7 +344,13 @@ public class PromptRunner(
             Return only valid JSON matching the schema in your instructions.
             """;
 
-        return await CallModelAsync<XyzDetectResult>("PR-07", null, userMessage, null, ct);
+        return await CallModelAsync<XyzDetectResult>(
+            "PR-07", 
+            null, 
+            userMessage, 
+            null, 
+            ct, 
+            ResponseSchemas.XyzDetectSchema);
     }
 
     public async Task<PromptResult<XyzRewriteResult>> RewriteWithXyzAsync(
@@ -387,7 +394,13 @@ public class PromptRunner(
             Return only valid JSON matching the schema in your instructions.
             """;
 
-        return await CallModelAsync<XyzRewriteResult>("PR-08", null, userMessage, null, ct);
+        return await CallModelAsync<XyzRewriteResult>(
+            "PR-08", 
+            null, 
+            userMessage, 
+            null, 
+            ct, 
+            ResponseSchemas.XyzRewriteSchema);
     }
     
     public async Task<PromptResult<CoverLetterResult>> GenerateCoverLetterAsync(
@@ -438,7 +451,7 @@ public class PromptRunner(
             : (float?)null;
 
         var result = await CallModelAsync<CoverLetterResult>(
-            "PR-09", null, userMessage, tempOverride, ct);
+            "PR-09", null, userMessage, tempOverride, ct, ResponseSchemas.CoverLetterSchema);
 
         result.Content.RewriteCount = ctx.RewriteCount;
 
@@ -450,7 +463,8 @@ public class PromptRunner(
         Guid? optimisationId,
         string userMessage,
         float? temperatureOverride,
-        CancellationToken ct)
+        CancellationToken ct,
+        Schema? responseSchema = null)
     {
         var prompt = promptRegistry.Get(promptId);
 
@@ -458,7 +472,8 @@ public class PromptRunner(
         {
             Temperature = temperatureOverride ?? prompt.Temperature,
             MaxOutputTokens = prompt.MaxTokens,
-            ResponseMimeType = "application/json"
+            ResponseMimeType = "application/json",
+            ResponseSchema = responseSchema
         };
         
         var response = await client.Models.GenerateContentAsync(
